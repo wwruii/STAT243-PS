@@ -196,7 +196,8 @@ Advanced_search<-function(title,artist){
 # 5.
 # It is ok to scrape the data from mldb.org since the search directory is not disallowed.
 # However, it is not allowed to imiate the search to scrape the data from Google Scholar
-# unless the data that you scrape is general data such as https://scholar.google.com/citations?view_op=metrics_intro.
+# unless the data that you scrape is general data such as 
+# https://scholar.google.com/citations?view_op=metrics_intro.
 ```
 
 
