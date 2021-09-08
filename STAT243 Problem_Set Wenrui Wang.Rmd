@@ -132,13 +132,13 @@ n
 
 Advanced_search<-function(title,artist){
   string2=strsplit(title,split=" ")[[1]]%>%paste(collapse="+")
-  second_url<-paste("http://www.mldb.org/search?mq=",string1,"&si=2&mm=0&ob=1",sep = "")
+  second_url<-paste("http://www.mldb.org/search?mq=",string2,"&si=2&mm=0&ob=1",sep = "")
   song_link<-datascrap(title,artist)
   html2<-read_html(song_link)
   frame1<-html2%>%html_elements("#thelist")%>%html_table()
   song_lyrics<-html2%>%html_elements("p")%>%html_text()
-  album_sol=table[[1]][2,2]
-  artist_sol=table[[1]][1,2]
+  album_sol=frame1[[1]][2,2]
+  artist_sol=frame1[[1]][1,2]
   
   return(c(artist_sol,album_sol,song_lyrics))}
 ```
@@ -172,19 +172,24 @@ Advanced_search<-function(title,artist){
 
   Advanced_search<-function(title,artist){
   string2=strsplit(title,split=" ")[[1]]%>%paste(collapse="+")
-  second_url<-paste("http://www.mldb.org/search?mq=",string1,"&si=2&mm=0&ob=1",sep = "")
+  second_url<-paste("http://www.mldb.org/search?mq=",string2,"&si=2&mm=0&ob=1",sep = "")
   song_link<-datascrap(title,artist)
   html2<-read_html(song_link)
   frame1<-html2%>%html_elements("#thelist")%>%html_table()
   song_lyrics<-html2%>%html_elements("p")%>%html_text()
-  album_sol=table[[1]][2,2]
-  artist_sol=table[[1]][1,2]
+  album_sol=frame1[[1]][2,2]
+  artist_sol=frame1[[1]][1,2]
   
   return(c(artist_sol,album_sol,song_lyrics))}
   # Now test whether our function works when the lyrics are returned directly from the initial search
   p<-datascrap("Just One Last Dance","Sarah Connor")
   p
   ## It works and returns the lyrics directly
+   
+  # Test function Advanced_search to see whether it returns the album, artist, and the lyrics to the screen
+  f<-Advanced_search("Someone like you","Adele")
+  f
+  
 ```
 
 ```{r}
