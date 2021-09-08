@@ -1,0 +1,210 @@
+---
+title: "STAT243 PS1"
+author: "Wenrui Wang"
+date: "9/6/2021"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+# 2(a) 
+## Using function rnorm() to generate random number from normal distribution
+# I firstly generated a file with 2000000 numbers and take a look at the size of the file 
+# and then increment the numbers to approach a file of 100 mb
+RandomNum<-matrix(rnorm(5476000),ncol=10)
+# Write the random numbers we generate into the file called Random_Num.csv
+write.csv(RandomNum,"Random_Num.csv")
+```
+
+```{r}
+# 2(b)
+# Start the clock
+ptm<-proc.time()
+df=read.csv(file="Random_Num.csv",nrows = 100000)
+# Stop the clock
+length_of_time<-proc.time()-ptm
+# Take a look at the time elapsed
+length_of_time
+# Test whether we can load the data more quickly if we use colClasses
+# Start the clock
+ptm1<-proc.time()
+# Stop the clock
+length_of_time1<-proc.time()-ptm1
+length_of_time1
+## Using colClasses enables us to read the data much faster!
+```
+
+```{r}
+# 2(c)
+# Read the data from the middle of the file
+nrow(RandomNum)
+# Start the clock
+ptm2=proc.time()
+test1<-read.csv(file="Random_Num.csv",skip=273800,nrows=1000)
+time1=proc.time()-ptm2
+time1
+
+# Start the clock
+ptm3=proc.time()
+test2<-read.csv(file = "Random_Num.csv",nrows = 1000)
+time2=proc.time()-ptm3
+time2
+## It shows that we didn't really skip 273800 lines since reading 1000 rows from the 
+# middle of the file is much slower than reading the first 1000 rows of data
+```
+
+```{r}
+# 2(d)
+diff<-read.csv(file="Random_Num.csv",nrows=100000,colClasses = c("NULL",rep('double',10)))
+# Open a connection to file
+con = file("Random_Num.csv","r")
+rep(read.csv(con,nrows=1000),5)
+#rep(read.csv(con,nrows=1000),273) I commented this part of code because it will make pdf extremely large
+# Start the clock
+ptm4=proc.time()
+read.csv(con,nrows=1000)
+# Stop the clock
+time3=proc.time()-ptm4
+time3
+close(con)
+## By using a connection, we read the same lines of data from the middle of the data file more quickly then we use skip and nrows to read the same number of lines from data file in part(c), which implies that we should try to use connection to improve the efficiency of our data analyzing in the future.
+```
+
+```{r}
+# 2(e)
+save(RandomNum,file="RandomNum.rData",compress = FALSE)
+file.info("RandomNum.rData")$size
+```
+```{r}
+# 2(f)
+Same_value<-matrix(2,547600,10)
+save(Same_value,file = "SameNum.rData",compress=TRUE)
+file.info("SameNum.rData")$size
+# The size of the file with a single repeated value is significantly smaller 
+# than the file with same number of random values. 
+#"Compression" allows me to keep data files on disk compressed saving space and time!
+```
+
+```{r}
+# 3
+## Because it is more readable and more convenient for me to debug the functions. 
+# Besides that, I pay attention to assigning a meaningful name to each of the functions. If the function name itself is intricate, I write a comment to illustrate the purpose of the function. Last but not the least, 
+# if i am not sure about whether the function I wrote is correct, I will test the function and check 
+# whether the output is valid.
+```
+
+```{r}
+# 4(a)
+library(magrittr)
+library(dplyr)
+library(rvest)
+  url_webscrap<-function(artist,title){
+  string1=strsplit(title,split=" ")[[1]]%>%paste(collapse="+")
+  first_url<-paste("http://www.mldb.org/search?mq=",string1
+                   ,"&si=2&mm=0&ob=1",sep = "")
+  html=read_html(first_url)
+  all_a_name<-html %>% html_elements("a")%>%html_text()
+  all_a_value<-html %>% html_elements("a")%>%html_attr("href")
+  song_url<-paste("http://mldb.org/",all_a_value[which(all_a_name==artist)+1],sep="")
+  return (song_url)}
+
+# Test the output of the function
+m<-url_webscrap("Adele","Someone like you")
+m
+n<-url_webscrap("Sarah Connor","Just One Last Dance")
+n
+```
+
+```{r}
+# 4(b) based on the code written in 4(a),we made some revision to get the required function
+# Firstly, I just copied the function from 4(a)
+  datascrap<-function(title, artist){
+  string1=strsplit(title,split=" ")[[1]]%>%paste(collapse="+")
+  first_url<-paste("http://www.mldb.org/search?mq=",string1,"&si=2&mm=0&ob=1",sep = "")
+  html=read_html(first_url)
+  all_a_name<-html %>% html_elements("a")%>%html_text()
+  all_a_value<-html %>% html_elements("a")%>%html_attr("href")
+  song_url<-paste("http://mldb.org/",all_a_value[which(all_a_name==artist)+1],sep="")
+  return (song_url)}
+
+Advanced_search<-function(title,artist){
+  string2=strsplit(title,split=" ")[[1]]%>%paste(collapse="+")
+  second_url<-paste("http://www.mldb.org/search?mq=",string1,"&si=2&mm=0&ob=1",sep = "")
+  song_link<-datascrap(title,artist)
+  html2<-read_html(song_link)
+  frame1<-html2%>%html_elements("#thelist")%>%html_table()
+  song_lyrics<-html2%>%html_elements("p")%>%html_text()
+  album_sol=table[[1]][2,2]
+  artist_sol=table[[1]][1,2]
+  
+  return(c(artist_sol,album_sol,song_lyrics))}
+```
+
+```{r}
+# 4(C)
+# Firstly, I got the code from part(b)
+  datascrap<-function(title, artist){
+
+  string1=strsplit(title,split=" ")[[1]]%>%paste(collapse="+")
+  first_url<-paste("http://www.mldb.org/search?mq=",string1,"&si=2&mm=0&ob=1",sep = "")
+  html=read_html(first_url)
+  all_a_name<-html %>% html_elements("a")%>%html_text()
+  all_a_value<-html %>% html_elements("a")%>%html_attr("href")
+  song_url<-paste("http://mldb.org/",all_a_value[which(all_a_name==artist)+1],sep="")
+  # Use the length of all_a_name to verify whether the input is valid
+  if(length(all_a_name)<=51){
+    stop("The input you provided is invalid")
+  }
+  # Verify whether the lyrics are returned directly from the initial search
+  if(length(all_a_name)<=63){
+  html99<-read_html("http://mldb.org/album-20721-key-to-my-soul.html")
+  all_a_name<-html99 %>% html_elements("a")%>%html_text()
+  all_a_value<-html99 %>% html_elements("a")%>%html_attr("href")
+  song_url<-paste("http://mldb.org/",all_a_value[which(all_a_name==title)],sep="")
+     return(song_url)}
+  else{
+  
+  return (song_url)}
+  }
+
+  Advanced_search<-function(title,artist){
+  string2=strsplit(title,split=" ")[[1]]%>%paste(collapse="+")
+  second_url<-paste("http://www.mldb.org/search?mq=",string1,"&si=2&mm=0&ob=1",sep = "")
+  song_link<-datascrap(title,artist)
+  html2<-read_html(song_link)
+  frame1<-html2%>%html_elements("#thelist")%>%html_table()
+  song_lyrics<-html2%>%html_elements("p")%>%html_text()
+  album_sol=table[[1]][2,2]
+  artist_sol=table[[1]][1,2]
+  
+  return(c(artist_sol,album_sol,song_lyrics))}
+  # Now test whether our function works when the lyrics are returned directly from the initial search
+  p<-datascrap("Just One Last Dance","Sarah Connor")
+  p
+  ## It works and returns the lyrics directly
+```
+
+```{r}
+# 5.
+# It is ok to scrape the data from mldb.org since the search directory is not disallowed.
+# However, it is not allowed to imiate the search to scrape the data from Google Scholar
+# unless the data that you scrape is general data such as https://scholar.google.com/citations?view_op=metrics_intro.
+```
+
+
+```{r}
+#install.packages("tinytex")
+tinytex::install_tinytex()
+```
+
+
+
+
+
+
+
+
+
